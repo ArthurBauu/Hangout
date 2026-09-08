@@ -34,30 +34,13 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
-      - name: Install Android SDK command-line tools and packages
-        env:
-          ANDROID_SDK_ROOT: ${{ runner.temp }}/android-sdk
-        run: |
-          set -euxo pipefail
-          LOG_FILE="$GITHUB_WORKSPACE/sdk-install.log"
-          sudo apt-get update
-          sudo apt-get install -y unzip wget
-          mkdir -p "$ANDROID_SDK_ROOT"
-          wget -q -O cmdline.zip https://dl.google.com/android/repository/commandlinetools-linux-latest.zip 2>&1 | tee -a "$LOG_FILE"
-          unzip -q -o cmdline.zip -d "$ANDROID_SDK_ROOT/cmdline-tools" 2>&1 | tee -a "$LOG_FILE"
-          if [ -d "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" ]; then mv -f "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" "$ANDROID_SDK_ROOT/cmdline-tools/latest"; fi
-          export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
-          (yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-33" "build-tools;33.0.2") 2>&1 | tee -a "$LOG_FILE"
-          (yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" --licenses) 2>&1 | tee -a "$LOG_FILE" || true
-          echo "SDK contents:" 2>&1 | tee -a "$LOG_FILE" && ls -la "$ANDROID_SDK_ROOT" 2>&1 | tee -a "$LOG_FILE"
-          sdkmanager --list --sdk_root="$ANDROID_SDK_ROOT" 2>&1 | tee -a "$LOG_FILE" || true
-
-      - name: Upload SDK install log
-        if: always()
-        uses: actions/upload-artifact@v4
+      - name: Set up Android SDK and emulator (action)
+        uses: reactivecircus/android-emulator-runner@v2
         with:
-          name: sdk-install-log
-          path: ${{ github.workspace }}/sdk-install.log
+          api-level: 33
+          arch: x86_64
+          target: default
+          emulator-options: -no-window
 
       - name: Build (assembleDebug)
         run: ./gradlew assembleDebug --no-daemon --stacktrace
