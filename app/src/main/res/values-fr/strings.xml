@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Contacts &amp; Messagerie</string>
+    <string name="welcome">Bienvenue dans l\'application Contacts</string>
+    <string name="create_contact">Créer un contact</string>
+</resources>

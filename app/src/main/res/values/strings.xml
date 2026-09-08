@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Contacts &amp; Messaging</string>
+    <string name="welcome">Welcome to Contact App</string>
+    <string name="create_contact">Create contact</string>
+    <string name="error_name_required">Name is required</string>
+    <string name="error_phone_invalid">Enter a valid phone number (min 6 digits)</string>
+</resources>
