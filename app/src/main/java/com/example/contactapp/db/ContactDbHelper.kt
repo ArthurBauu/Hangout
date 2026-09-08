@@ -52,13 +52,30 @@ class ContactDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAM
                 Log.e("ContactDbHelper", "Error backfilling phone_norm: ${e.message}")
             }
         }
+        if (oldVersion < 3)
+        {
+            try {
+                db.execSQL("ALTER TABLE $TABLE_CONTACTS ADD COLUMN $COLUMN_FAVORITE INTEGER DEFAULT 0")
+            } catch (e: Exception) {
+                // ignore
+            }
+        }
+        if (oldVersion < 4)
+        {
+            try {
+                // Clear all problematic photo URIs that might cause SecurityException
+                db.execSQL("UPDATE $TABLE_CONTACTS SET $COLUMN_PHOTO = NULL")
+            } catch (e: Exception) {
+                // ignore
+            }
+        }
         // Future migrations can be handled here
     }
 
     companion object
     {
         const val DATABASE_NAME = "contacts.db"
-        const val DATABASE_VERSION = 2
+        const val DATABASE_VERSION = 4
 
         const val TABLE_CONTACTS = "contacts"
         const val COLUMN_ID = "id"
@@ -69,6 +86,7 @@ class ContactDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAM
         const val COLUMN_ADDRESS = "address"
         const val COLUMN_NOTES = "notes"
         const val COLUMN_PHOTO = "photo_uri"
+        const val COLUMN_FAVORITE = "is_favorite"
 
         const val TABLE_MESSAGES = "messages"
         const val MSG_ID = "id"
@@ -87,7 +105,8 @@ class ContactDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAM
                 $COLUMN_EMAIL TEXT,
                 $COLUMN_ADDRESS TEXT,
                 $COLUMN_NOTES TEXT,
-                $COLUMN_PHOTO TEXT
+                $COLUMN_PHOTO TEXT,
+                $COLUMN_FAVORITE INTEGER DEFAULT 0
             )
         """.trimIndent()
 

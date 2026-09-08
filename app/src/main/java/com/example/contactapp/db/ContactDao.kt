@@ -27,6 +27,7 @@ class ContactDao(private val helper: ContactDbHelper)
             put(ContactDbHelper.COLUMN_ADDRESS, contact.address)
             put(ContactDbHelper.COLUMN_NOTES, contact.notes)
             put(ContactDbHelper.COLUMN_PHOTO, contact.photoUri)
+            put(ContactDbHelper.COLUMN_FAVORITE, if (contact.isFavorite) 1 else 0)
         }
         return db.insert(ContactDbHelper.TABLE_CONTACTS, null, values)
     }
@@ -42,6 +43,7 @@ class ContactDao(private val helper: ContactDbHelper)
             put(ContactDbHelper.COLUMN_ADDRESS, contact.address)
             put(ContactDbHelper.COLUMN_NOTES, contact.notes)
             put(ContactDbHelper.COLUMN_PHOTO, contact.photoUri)
+            put(ContactDbHelper.COLUMN_FAVORITE, if (contact.isFavorite) 1 else 0)
         }
         val where = "${ContactDbHelper.COLUMN_ID} = ?"
         return db.update(ContactDbHelper.TABLE_CONTACTS, values, where, arrayOf(contact.id.toString()))
@@ -71,7 +73,8 @@ class ContactDao(private val helper: ContactDbHelper)
     {
         val list = mutableListOf<Contact>()
         val db = helper.readableDatabase
-        val cursor = db.query(ContactDbHelper.TABLE_CONTACTS, null, null, null, null, null, "${ContactDbHelper.COLUMN_NAME} ASC")
+        val orderBy = "${ContactDbHelper.COLUMN_FAVORITE} DESC, ${ContactDbHelper.COLUMN_NAME} ASC"
+        val cursor = db.query(ContactDbHelper.TABLE_CONTACTS, null, null, null, null, null, orderBy)
         cursor.use {
             while (it.moveToNext())
             {
@@ -79,6 +82,32 @@ class ContactDao(private val helper: ContactDbHelper)
             }
         }
         return list
+    }
+
+    fun searchContacts(query: String): List<Contact>
+    {
+        val list = mutableListOf<Contact>()
+        val db = helper.readableDatabase
+        val where = "${ContactDbHelper.COLUMN_NAME} LIKE ? OR ${ContactDbHelper.COLUMN_PHONE} LIKE ?"
+        val args = arrayOf("%$query%", "%$query%")
+        val cursor = db.query(ContactDbHelper.TABLE_CONTACTS, null, where, args, null, null, "${ContactDbHelper.COLUMN_NAME} ASC")
+        cursor.use {
+            while (it.moveToNext())
+            {
+                list.add(cursorToContact(it))
+            }
+        }
+        return list
+    }
+
+    fun findByName(name: String): Contact?
+    {
+        val db = helper.readableDatabase
+        val cursor = db.query(ContactDbHelper.TABLE_CONTACTS, null, "${ContactDbHelper.COLUMN_NAME} = ?", arrayOf(name), null, null, null)
+        cursor.use {
+            if (it.moveToFirst()) return cursorToContact(it)
+        }
+        return null
     }
 
     fun findByPhone(phone: String): Contact?
@@ -111,6 +140,7 @@ class ContactDao(private val helper: ContactDbHelper)
         val address = c.getString(c.getColumnIndexOrThrow(ContactDbHelper.COLUMN_ADDRESS))
         val notes = c.getString(c.getColumnIndexOrThrow(ContactDbHelper.COLUMN_NOTES))
         val photo = if (c.getColumnIndex(ContactDbHelper.COLUMN_PHOTO) >= 0) c.getString(c.getColumnIndexOrThrow(ContactDbHelper.COLUMN_PHOTO)) else null
-        return Contact(id = id, name = name ?: "", phone = phone ?: "", email = email ?: "", address = address ?: "", notes = notes ?: "", photoUri = photo)
+        val favorite = if (c.getColumnIndex(ContactDbHelper.COLUMN_FAVORITE) >= 0) c.getInt(c.getColumnIndexOrThrow(ContactDbHelper.COLUMN_FAVORITE)) == 1 else false
+        return Contact(id = id, name = name ?: "", phone = phone ?: "", email = email ?: "", address = address ?: "", notes = notes ?: "", photoUri = photo, isFavorite = favorite)
     }
 }

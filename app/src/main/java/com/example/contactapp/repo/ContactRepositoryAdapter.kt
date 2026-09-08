@@ -11,7 +11,11 @@ class ContactRepositoryAdapter(private val dao: ContactDao) : IContactRepository
 
     override fun findByPhone(phone: String): Contact? = dao.findByPhone(phone)
 
+    override fun findByName(name: String): Contact? = dao.findByName(name)
+
     override fun insert(contact: Contact): Long = dao.insertContact(contact)
 
     override fun update(contact: Contact): Int = dao.updateContact(contact)
+
+    override fun delete(id: Long): Int = dao.deleteContact(id)
 }

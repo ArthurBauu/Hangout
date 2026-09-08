@@ -18,7 +18,7 @@ class ContactRepository private constructor(context: Context) : IContactReposito
         val list = dao.getAllContacts()
         list.forEach { c ->
             cacheById[c.id] = c
-            if (!c.phone.isNullOrEmpty()) cacheByPhoneNorm[c.phone] = c
+            if (!c.phone.isNullOrEmpty()) cacheByPhoneNorm[com.example.contactapp.util.PhoneUtils.normalize(c.phone)] = c
         }
         return list
     }
@@ -41,6 +41,11 @@ class ContactRepository private constructor(context: Context) : IContactReposito
         return c
     }
 
+    override fun findByName(name: String): Contact? {
+        // We could cache by name too, but let's keep it simple for now
+        return dao.findByName(name)
+    }
+
     override fun insert(contact: Contact): Long {
         val id = dao.insertContact(contact)
         val c = dao.getContact(id)
@@ -58,6 +63,18 @@ class ContactRepository private constructor(context: Context) : IContactReposito
             if (c != null) {
                 cacheById[c.id] = c
                 if (!c.phone.isNullOrEmpty()) cacheByPhoneNorm[com.example.contactapp.util.PhoneUtils.normalize(c.phone)] = c
+            }
+        }
+        return res
+    }
+
+    override fun delete(id: Long): Int {
+        val contact = cacheById[id]
+        val res = dao.deleteContact(id)
+        if (res > 0) {
+            cacheById.remove(id)
+            contact?.phone?.let {
+                cacheByPhoneNorm.remove(com.example.contactapp.util.PhoneUtils.normalize(it))
             }
         }
         return res

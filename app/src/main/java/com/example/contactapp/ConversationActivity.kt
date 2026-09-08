@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.telephony.SmsManager
+import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.EditText
@@ -42,12 +43,24 @@ class ConversationActivity : AppCompatActivity()
         recycler.layoutManager = LinearLayoutManager(this)
         recycler.adapter = adapter
 
+        val tvEmpty = findViewById<android.widget.TextView>(R.id.tvNoMessages)
         vm.messages.observe(this) { list ->
             adapter.setItems(list)
             recycler.scrollToPosition(list.size - 1)
+            tvEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
         }
 
         vm.loadConversation(contactId)
+
+        // Setup Search
+        val searchView = findViewById<androidx.appcompat.widget.SearchView>(R.id.searchMessages)
+        searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean = false
+            override fun onQueryTextChange(newText: String?): Boolean {
+                adapter.filter(newText ?: "")
+                return true
+            }
+        })
 
         val et = findViewById<EditText>(R.id.etMessage)
         val btn = findViewById<Button>(R.id.btnSend)

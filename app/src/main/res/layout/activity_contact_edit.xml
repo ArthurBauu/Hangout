@@ -56,11 +56,26 @@
             android:layout_height="wrap_content"
             android:hint="Notes" />
 
+        <CheckBox
+            android:id="@+id/cbFavorite"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/add_to_favorites" />
+
         <Button
             android:id="@+id/btnSave"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Save" />
+
+        <Button
+            android:id="@+id/btnDelete"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Delete"
+            android:textColor="#FF0000"
+            android:visibility="gone"
+            style="@style/Widget.MaterialComponents.Button.TextButton" />
 
     </LinearLayout>
 

@@ -33,14 +33,19 @@ class ContactEditActivity : AppCompatActivity()
         val etEmail = findViewById<EditText>(R.id.etEmail)
         val etAddress = findViewById<EditText>(R.id.etAddress)
         val etNotes = findViewById<EditText>(R.id.etNotes)
+        val cbFavorite = findViewById<android.widget.CheckBox>(R.id.cbFavorite)
         val btnSave = findViewById<Button>(R.id.btnSave)
+        val btnDelete = findViewById<Button>(R.id.btnDelete)
 
         // Activity result for picking image
         var currentPhotoUri: String? = null
         val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
             if (uri != null) {
-                currentPhotoUri = uri.toString()
-                ivPhoto.setImageURI(uri)
+                val localUri = copyImageToInternalStorage(uri)
+                if (localUri != null) {
+                    currentPhotoUri = localUri.toString()
+                    ivPhoto.setImageURI(localUri)
+                }
             }
         }
 
@@ -58,11 +63,31 @@ class ContactEditActivity : AppCompatActivity()
                         etEmail.setText(c.email)
                         etAddress.setText(c.address)
                         etNotes.setText(c.notes)
-                        if (!c.photoUri.isNullOrEmpty()) ivPhoto.setImageURI(Uri.parse(c.photoUri))
+                        cbFavorite.isChecked = c.isFavorite
+                        if (!c.photoUri.isNullOrEmpty()) {
+                            try {
+                                ivPhoto.setImageURI(Uri.parse(c.photoUri))
+                            } catch (_: Exception) {
+                                ivPhoto.setImageResource(R.drawable.ic_contact_placeholder)
+                            }
+                        }
                         currentPhotoUri = c.photoUri
+                        btnDelete.visibility = android.view.View.VISIBLE
                     }
                 }
             }
+        }
+
+        btnDelete.setOnClickListener {
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle(R.string.delete_contact_title)
+                .setMessage(R.string.delete_contact_message)
+                .setPositiveButton(R.string.yes) { _, _ ->
+                    vm.delete(editingId)
+                    finish()
+                }
+                .setNegativeButton(R.string.no, null)
+                .show()
         }
 
         btnPick.setOnClickListener { pickImage.launch("image/*") }
@@ -94,17 +119,67 @@ class ContactEditActivity : AppCompatActivity()
                 return@setOnClickListener
             }
 
-            val contact = Contact(id = editingId, name = nameStr, phone = phoneStr, email = etEmail.text.toString(), address = etAddress.text.toString(), notes = etNotes.text.toString(), photoUri = currentPhotoUri)
-            if (editingId != 0L)
-            {
+            val contact = Contact(
+                id = editingId, 
+                name = nameStr, 
+                phone = phoneStr, 
+                email = etEmail.text.toString(), 
+                address = etAddress.text.toString(), 
+                notes = etNotes.text.toString(), 
+                photoUri = currentPhotoUri,
+                isFavorite = cbFavorite.isChecked
+            )
+
+            if (editingId == 0L) {
+                // Creation: check for duplicates
+                vm.findByName(nameStr) { existing ->
+                    runOnUiThread {
+                        if (existing != null) {
+                            showMergeDialog(existing, contact)
+                        } else {
+                            vm.insert(contact)
+                            finish()
+                        }
+                    }
+                }
+            } else {
+                // Update
                 vm.update(contact)
                 finish()
             }
-            else
-            {
-                vm.insert(contact)
+        }
+    }
+
+    private fun showMergeDialog(existing: Contact, newContact: Contact)
+    {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle(R.string.merge_title)
+            .setMessage(getString(R.string.merge_message, existing.name))
+            .setPositiveButton(R.string.merge) { _, _ ->
+                vm.mergeContacts(existing, newContact)
                 finish()
             }
+            .setNegativeButton(R.string.no) { _, _ ->
+                vm.insert(newContact)
+                finish()
+            }
+            .show()
+    }
+
+    private fun copyImageToInternalStorage(uri: Uri): Uri?
+    {
+        return try {
+            val inputStream = contentResolver.openInputStream(uri) ?: return null
+            val fileName = "contact_${System.currentTimeMillis()}.jpg"
+            val file = java.io.File(filesDir, fileName)
+            val outputStream = java.io.FileOutputStream(file)
+            inputStream.copyTo(outputStream)
+            inputStream.close()
+            outputStream.close()
+            Uri.fromFile(file)
+        } catch (e: Exception) {
+            Log.e("ContactEdit", "Error copying image: ${e.message}")
+            null
         }
     }
 }

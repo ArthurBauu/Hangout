@@ -7,5 +7,6 @@ data class Contact(
     var email: String = "",
     var address: String = "",
     var notes: String = "",
-    var photoUri: String? = null
+    var photoUri: String? = null,
+    var isFavorite: Boolean = false
 )

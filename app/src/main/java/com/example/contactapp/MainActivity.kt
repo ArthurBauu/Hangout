@@ -20,6 +20,7 @@ class MainActivity : AppCompatActivity()
 {
     private lateinit var dbHelper: ContactDbHelper
     private lateinit var dao: ContactDao
+    private lateinit var vm: com.example.contactapp.viewmodel.ContactViewModel
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
@@ -31,15 +32,41 @@ class MainActivity : AppCompatActivity()
 
         // Setup RecyclerView
         val recycler = findViewById<RecyclerView>(R.id.recyclerContacts)
-            val adapter = ContactAdapter(mutableListOf()) { contact ->
+        val adapter = ContactAdapter(
+            items = mutableListOf(),
+            onClick = { contact ->
+                // Open edit screen
+                val i = Intent(this, ContactEditActivity::class.java)
+                i.putExtra("contact_id", contact.id)
+                startActivity(i)
+            },
+            onLongClick = { contact ->
+                showDeleteConfirmation(contact)
+            },
+            onHistoryClick = { contact ->
                 // Open conversation for contact
                 val i = Intent(this, ConversationActivity::class.java)
                 i.putExtra("contact_id", contact.id)
                 i.putExtra("contact_name", contact.name)
                 startActivity(i)
-        }
+            },
+            onFavoriteToggle = { contact ->
+                contact.isFavorite = !contact.isFavorite
+                vm.update(contact)
+            }
+        )
         recycler.layoutManager = LinearLayoutManager(this)
         recycler.adapter = adapter
+
+        // Setup Search
+        val searchView = findViewById<androidx.appcompat.widget.SearchView>(R.id.searchView)
+        searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean = false
+            override fun onQueryTextChange(newText: String?): Boolean {
+                adapter.filter(newText ?: "")
+                return true
+            }
+        })
 
         val fab = findViewById<View>(R.id.fabAdd)
         fab.setOnClickListener {
@@ -49,21 +76,35 @@ class MainActivity : AppCompatActivity()
         // Request runtime permissions if needed
         PermissionHelper.requestMissing(this)
 
-            // Use ViewModel to load contacts
-            val factory = com.example.contactapp.viewmodel.ViewModelFactory(application)
-            val vm = androidx.lifecycle.ViewModelProvider(this, factory).get(com.example.contactapp.viewmodel.ContactViewModel::class.java)
-            vm.contacts.observe(this) { list ->
-                adapter.setItems(list)
-            }
-            vm.loadContacts()
+        // Use ViewModel to load contacts
+        val factory = com.example.contactapp.viewmodel.ViewModelFactory(application)
+        vm = androidx.lifecycle.ViewModelProvider(this, factory).get(com.example.contactapp.viewmodel.ContactViewModel::class.java)
+        val tvEmpty = findViewById<android.widget.TextView>(R.id.tvEmpty)
+        vm.contacts.observe(this) { list ->
+            adapter.setItems(list)
+            tvEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
+        }
+        vm.loadContacts()
+    }
 
-            // ensure at least one sample exists (insert via ViewModel)
-            vm.findById(1L) { c ->
-                if (c == null)
-                {
-                    vm.insert(Contact(name = "Test User", phone = "+33000000000", email = "test@example.com", address = "42 campus", notes = "Init"))
-                }
+    override fun onResume()
+    {
+        super.onResume()
+        if (::vm.isInitialized) {
+            vm.loadContacts()
+        }
+    }
+
+    private fun showDeleteConfirmation(contact: Contact)
+    {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle(R.string.delete_contact_title)
+            .setMessage(R.string.delete_contact_message)
+            .setPositiveButton(R.string.yes) { _, _ ->
+                vm.delete(contact.id)
             }
+            .setNegativeButton(R.string.no, null)
+            .show()
     }
 
     private fun checkAndRequestPermissions()

@@ -14,8 +14,6 @@ import androidx.core.app.TaskStackBuilder
 import com.example.contactapp.db.ContactDbHelper
 import com.example.contactapp.db.ContactDao
 import com.example.contactapp.Contact
-import com.example.contactapp.Message
-import com.example.contactapp.db.MessageDao
 
 class SmsReceiver : BroadcastReceiver()
 {
@@ -41,9 +39,7 @@ class SmsReceiver : BroadcastReceiver()
                         contact = dao.getContact(newId)
                         createdNew = true
                     }
-                    val msgDao = MessageDao(helper)
-                    val message = Message(contactId = contact?.id ?: 0L, sender = from ?: "", body = body ?: "", timestamp = System.currentTimeMillis(), incoming = true)
-                    msgDao.insertMessage(message)
+                    // System will handle message insertion in its own DB.
                     // If we created a new contact, notify the user and offer to edit details
                     if (createdNew && contact != null)
                     {
