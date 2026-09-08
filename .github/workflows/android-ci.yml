@@ -38,13 +38,18 @@ jobs:
         env:
           ANDROID_SDK_ROOT: ${{ runner.temp }}/android-sdk
         run: |
+          set -euxo pipefail
+          sudo apt-get update
+          sudo apt-get install -y unzip wget
           mkdir -p "$ANDROID_SDK_ROOT"
-          curl -sS https://dl.google.com/android/repository/commandlinetools-linux-latest.zip -o cmdline.zip
-          unzip -q cmdline.zip -d "$ANDROID_SDK_ROOT/cmdline-tools"
-          if [ -d "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" ]; then mv "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" "$ANDROID_SDK_ROOT/cmdline-tools/latest"; fi
+          wget -q -O cmdline.zip https://dl.google.com/android/repository/commandlinetools-linux-latest.zip
+          unzip -q -o cmdline.zip -d "$ANDROID_SDK_ROOT/cmdline-tools"
+          if [ -d "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" ]; then mv -f "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" "$ANDROID_SDK_ROOT/cmdline-tools/latest"; fi
           export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
           yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-33" "build-tools;33.0.2"
           yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" --licenses
+          echo "SDK contents:" && ls -la "$ANDROID_SDK_ROOT"
+          sdkmanager --list --sdk_root="$ANDROID_SDK_ROOT" || true
 
       - name: Build (assembleDebug)
         run: ./gradlew assembleDebug --no-daemon --stacktrace
