@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Contacts &amp; Messagerie</string>
-    <string name="welcome">Bienvenue dans l\'application Contacts</string>
+    <string name="welcome">Bienvenue dans l'application Contacts</string>
     <string name="create_contact">Créer un contact</string>
     <string name="error_name_required">Le nom est requis</string>
     <string name="error_phone_invalid">Entrez un numéro de téléphone valide (min 6 chiffres)</string>
@@ -16,7 +16,7 @@
     <string name="add_to_favorites">Ajouter aux favoris</string>
     <string name="delete">Supprimer</string>
     <string name="merge_title">Doublon détecté</string>
-    <string name="merge_message">Un contact nommé \"%1$s\" existe déjà. Voulez-vous fusionner leurs informations ?</string>
+    <string name="merge_message">Un contact nommé "%1$s" existe déjà. Voulez-vous fusionner leurs informations ?</string>
     <string name="merge">Fusionner</string>
     <string name="notif_new_contact_title">Nouveau contact créé</string>
     <string name="notif_new_contact_text">De %1$s</string>
