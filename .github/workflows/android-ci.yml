@@ -34,26 +34,35 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
-      - name: Set up Android SDK and emulator (action)
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 33
-          arch: x86_64
-          target: default
-          emulator-options: -no-window -gpu swiftshader_indirect -no-accel -no-snapshot-load -no-snapshot-save
-          # Run build and tests from inside the action after the emulator is ready.
-          script: |
-            # wait for adb and for the device to report boot completed
-            adb start-server || true
-            for i in {1..60}; do
-              if adb devices | grep -q "emulator-"; then
-                if adb -s emulator-5554 shell getprop sys.boot_completed 2>/dev/null | grep -q "1"; then
-                  echo "Device booted"; break
-                fi
-              fi
-              echo "Waiting for emulator to boot... ($i)"; sleep 5
-            done
-            ./gradlew assembleDebug --no-daemon --stacktrace
-            ./gradlew test --no-daemon --stacktrace
+      - name: Install Android SDK command-line tools and packages
+        env:
+          ANDROID_SDK_ROOT: ${{ runner.temp }}/android-sdk
+        run: |
+          set -euxo pipefail
+          LOG_FILE="$GITHUB_WORKSPACE/sdk-install.log"
+          sudo apt-get update
+          sudo apt-get install -y unzip wget libglu1-mesa libpulse0
+          mkdir -p "$ANDROID_SDK_ROOT"
+          wget -q -O cmdline.zip https://dl.google.com/android/repository/commandlinetools-linux-latest.zip 2>&1 | tee -a "$LOG_FILE"
+          unzip -q -o cmdline.zip -d "$ANDROID_SDK_ROOT/cmdline-tools" 2>&1 | tee -a "$LOG_FILE"
+          if [ -d "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" ]; then mv -f "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" "$ANDROID_SDK_ROOT/cmdline-tools/latest"; fi
+          export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
+          (yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-33" "build-tools;33.0.2") 2>&1 | tee -a "$LOG_FILE"
+          (yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" --licenses) 2>&1 | tee -a "$LOG_FILE" || true
+          echo "SDK contents:" 2>&1 | tee -a "$LOG_FILE" && ls -la "$ANDROID_SDK_ROOT" 2>&1 | tee -a "$LOG_FILE"
+          sdkmanager --list --sdk_root="$ANDROID_SDK_ROOT" 2>&1 | tee -a "$LOG_FILE" || true
 
-      
+      - name: Upload SDK install log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdk-install-log
+          path: ${{ github.workspace }}/sdk-install.log
+
+      - name: Build (assembleDebug)
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Run unit tests
+        run: ./gradlew test --no-daemon --stacktrace
+
+
