@@ -16,7 +16,7 @@ class ContactRepository private constructor(context: Context) : IContactReposito
 
     override fun getAllContacts(): List<Contact> {
         val list = dao.getAllContacts()
-        list.forEach { c ->
+        for (c in list) {
             cacheById[c.id] = c
             if (!c.phone.isNullOrEmpty()) cacheByPhoneNorm[com.example.contactapp.util.PhoneUtils.normalize(c.phone)] = c
         }
