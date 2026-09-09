@@ -31,24 +31,24 @@ class SmsReceiver : BroadcastReceiver()
             {
                 val from = msg.originatingAddress ?: ""
                 val body = msg.messageBody ?: ""
-                    Log.d("ContactApp", "SMS from=$from body=$body")
-                    // Try to find contact by phone; if not found create minimal contact
-                    val dao = ContactDao(helper)
-                    var contact = dao.findByPhone(from ?: "")
-                    var createdNew = false
-                    if (contact == null)
-                    {
-                        val newContact = Contact(name = from ?: "", phone = from ?: "", photoUri = "")
-                        val newId = dao.insertContact(newContact)
-                        contact = dao.getContact(newId)
-                        createdNew = true
-                    }
-                    // System will handle message insertion in its own DB.
-                    // If we created a new contact, notify the user and offer to edit details
-                    if (createdNew && contact != null)
-                    {
-                        notifyNewContact(context, contact)
-                    }
+    			Log.d("ContactApp", "SMS from=$from body=$body")
+    			// Try to find contact by phone; if not found create minimal contact
+    			val dao = ContactDao(helper)
+    			var contact = dao.findByPhone(from ?: "")
+    			var createdNew = false
+    			if (contact == null)
+    			{
+    				val newContact = Contact(name = from ?: "", phone = from ?: "", photoUri = "")
+    				val newId = dao.insertContact(newContact)
+    				contact = dao.getContact(newId)
+    				createdNew = true
+    			}
+    			// System will handle message insertion in its own DB.
+    			// If we created a new contact, notify the user and offer to edit details
+    			if (createdNew && contact != null)
+    			{
+    				notifyNewContact(context, contact)
+    			}
             }
         }
     }
