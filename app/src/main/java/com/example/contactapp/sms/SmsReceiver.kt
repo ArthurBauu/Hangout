@@ -9,6 +9,9 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.os.Build
 import android.util.Log
+import android.content.pm.PackageManager
+import android.Manifest
+import androidx.core.content.ContextCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.TaskStackBuilder
 import com.example.contactapp.db.ContactDbHelper
@@ -74,6 +77,16 @@ class SmsReceiver : BroadcastReceiver()
                 .setAutoCancel(true)
                 .build()
 
-            nm.notify(contact.id.toInt(), notif)
+            // Android 13+ requires POST_NOTIFICATIONS runtime permission
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                    nm.notify(contact.id.toInt(), notif)
+                } else {
+                    // No permission to post notifications; skip notifying
+                    Log.d("ContactApp", "POST_NOTIFICATIONS not granted, skipping notification")
+                }
+            } else {
+                nm.notify(contact.id.toInt(), notif)
+            }
         }
 }
