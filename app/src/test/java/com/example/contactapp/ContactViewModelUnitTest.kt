@@ -26,6 +26,8 @@ class FakeContactRepoTest : IContactRepository {
 
     override fun findByPhone(phone: String): Contact? = storage.values.find { it.phone == phone }
 
+    override fun findByName(name: String): Contact? = storage.values.find { it.name == name }
+
     override fun insert(contact: Contact): Long {
         val id = seq++
         contact.id = id
@@ -40,6 +42,10 @@ class FakeContactRepoTest : IContactRepository {
             return 1
         }
         return 0
+    }
+
+    override fun delete(id: Long): Int {
+        return if (storage.remove(id) != null) 1 else 0
     }
 }
 
