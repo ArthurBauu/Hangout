@@ -9,6 +9,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.os.Build
 import android.util.Log
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.Manifest
 import androidx.core.content.ContextCompat
@@ -52,6 +53,7 @@ class SmsReceiver : BroadcastReceiver()
         }
     }
 
+        @SuppressLint("NotificationPermission")
         private fun notifyNewContact(context: Context, contact: com.example.contactapp.Contact)
         {
             val channelId = "sms_channel"
