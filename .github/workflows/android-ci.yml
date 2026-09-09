@@ -91,11 +91,23 @@ jobs:
           name: sdk-install-log
           path: ${{ github.workspace }}/sdk-install.log
 
-      - name: Build (assembleDebug)
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+      - name: Build (assembleDebug + assembleAndroidTest)
+        run: ./gradlew assembleDebug assembleAndroidTest --no-daemon --stacktrace
 
       - name: Run unit tests
         run: ./gradlew test --no-daemon --stacktrace
+
+      - name: Run lint
+        run: ./gradlew lint --no-daemon --stacktrace
+
+      - name: Upload APKs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: apks
+          path: |
+            app/build/outputs/apk/debug/app-debug.apk
+            app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 
   integration:
     name: Integration (manual) - Emulator UI tests
@@ -125,5 +137,38 @@ jobs:
           target: google_apis
           emulator-options: -no-window -no-audio
           script: ./gradlew connectedDebugAndroidTest --no-daemon --stacktrace
+
+  firebase_test:
+    name: Firebase Test Lab (manual)
+    needs: build
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Download APKs from build
+        uses: actions/download-artifact@v4
+        with:
+          name: apks
+          path: ./apks
+
+      - name: Setup gcloud (service account)
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: ${{ secrets.GCP_PROJECT }}
+          export_default_credentials: true
+
+      - name: Run Firebase Test Lab instrumentation
+        env:
+          GCLOUD_PROJECT: ${{ secrets.GCP_PROJECT }}
+        run: |
+          set -euxo pipefail
+          gcloud --quiet firebase test android run \
+            --type instrumentation \
+            --app ./apks/app-debug.apk \
+            --test ./apks/app-debug-androidTest.apk \
+            --device model=Pixel4,version=33,locale=en,orientation=portrait \
+            --timeout 30m
 
 
