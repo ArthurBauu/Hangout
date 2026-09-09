@@ -16,7 +16,7 @@
     <string name="add_to_favorites">Ajouter aux favoris</string>
     <string name="delete">Supprimer</string>
     <string name="merge_title">Doublon détecté</string>
-    <string name="merge_message">Un contact nommé \"%1$s\" existe déjà. Voulez-vous fusionner leurs informations ?</string>
+    <string name="merge_message">Un contact nommé "%1$s" existe déjà. Voulez-vous fusionner leurs informations ?</string>
     <string name="merge">Fusionner</string>
     <string name="notif_new_contact_title">New contact created</string>
     <string name="notif_new_contact_text">From %1$s</string>
