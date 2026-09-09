@@ -12,7 +12,8 @@ class ContactViewModelInstrumentedTest {
     @Test
     fun insertAndLoadViaViewModel() {
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext.applicationContext as android.app.Application
-        val vm = ContactViewModel(appContext)
+        val repo = com.example.contactapp.repo.ContactRepository.getInstance(appContext)
+        val vm = ContactViewModel(appContext, repo)
         val c = Contact(name = "VM Test", phone = "+33000000003")
         vm.insert(c)
         // allow some time for coroutine to run

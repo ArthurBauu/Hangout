@@ -19,7 +19,8 @@ class MessageViewModelInstrumentedTest {
         val c = Contact(name = "MsgVM", phone = "+33000000004")
         val cid = cdao.insertContact(c)
 
-        val vm = MessageViewModel(appContext)
+        val repo = com.example.contactapp.repo.SystemMessageRepository(appContext)
+        val vm = MessageViewModel(appContext, repo)
         val msg = Message(contactId = cid, sender = "+33000000004", body = "vm hello", timestamp = System.currentTimeMillis(), incoming = true)
         vm.insert(msg)
         Thread.sleep(500)
