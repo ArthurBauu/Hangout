@@ -83,7 +83,7 @@ class ConversationActivity : AppCompatActivity()
         if (PermissionHelper.missingPermissions(this).contains(Manifest.permission.SEND_SMS))
         {
             PermissionHelper.requestMissing(this)
-            Toast.makeText(this, "Requesting SMS permission", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.requesting_sms_permission), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -91,7 +91,7 @@ class ConversationActivity : AppCompatActivity()
         val helper = ContactDbHelper(this)
         val dao = ContactDao(helper)
         val contact = dao.getContact(contactId)
-        val number = contact?.phone ?: run { Toast.makeText(this, "No number for contact", Toast.LENGTH_SHORT).show(); return }
+        val number = contact?.phone ?: run { Toast.makeText(this, getString(R.string.no_number_for_contact), Toast.LENGTH_SHORT).show(); return }
 
         val sms = SmsManager.getDefault()
         try {
@@ -105,9 +105,9 @@ class ConversationActivity : AppCompatActivity()
             // insert outgoing message
             val message = Message(contactId = contactId, sender = number, body = text, timestamp = System.currentTimeMillis(), incoming = false)
             vm.insert(message)
-            Toast.makeText(this, "Message sent", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.message_sent), Toast.LENGTH_SHORT).show()
         } catch (ex: Exception) {
-            Toast.makeText(this, "Failed to send SMS: ${ex.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.failed_send_sms, ex.message ?: ""), Toast.LENGTH_LONG).show()
         }
     }
 }

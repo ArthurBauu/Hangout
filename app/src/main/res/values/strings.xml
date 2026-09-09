@@ -20,4 +20,8 @@
     <string name="merge">Fusionner</string>
     <string name="notif_new_contact_title">New contact created</string>
     <string name="notif_new_contact_text">From %1$s</string>
+    <string name="requesting_sms_permission">Requesting SMS permission</string>
+    <string name="no_number_for_contact">No number for contact</string>
+    <string name="message_sent">Message sent</string>
+    <string name="failed_send_sms">Failed to send SMS: %1$s</string>
 </resources>
