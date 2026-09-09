@@ -12,13 +12,19 @@ object PermissionHelper
     fun missingPermissions(activity: Activity): Array<String>
     {
         val perms = mutableListOf<String>()
-        val needed = arrayOf(
+        val needed = mutableListOf(
             android.Manifest.permission.RECEIVE_SMS,
             android.Manifest.permission.SEND_SMS,
             android.Manifest.permission.READ_SMS,
             android.Manifest.permission.READ_CONTACTS,
             android.Manifest.permission.WRITE_CONTACTS,
         )
+        // Add POST_NOTIFICATIONS on Android 13+ (TIRAMISU)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU)
+        {
+            // Safe to reference the constant because compileSdk >= 33
+            needed.add(android.Manifest.permission.POST_NOTIFICATIONS)
+        }
         for (p in needed)
         {
             if (ContextCompat.checkSelfPermission(activity, p) != PackageManager.PERMISSION_GRANTED)
