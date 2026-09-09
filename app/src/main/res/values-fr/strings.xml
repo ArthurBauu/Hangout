@@ -24,4 +24,10 @@
     <string name="no_number_for_contact">Pas de numéro pour ce contact</string>
     <string name="message_sent">Message envoyé</string>
     <string name="failed_send_sms">Échec de l'envoi du SMS : %1$s</string>
+    <!-- Overrides for dependency strings that caused aapt2 unicode-escape errors -->
+    <string name="abc_action_bar_home_description">Revenir à l'accueil</string>
+    <string name="material_timepicker_clock_mode_description">Passer en mode horloge pour la saisie de l'heure.</string>
+    <string name="material_timepicker_select_time">Sélectionner l'heure</string>
+    <string name="material_timepicker_text_input_mode_description">Passer en mode saisie de texte pour la saisie de l'heure.</string>
+    <string name="mtrl_picker_navigate_to_year_description">Accéder à l'année %1$s</string>
 </resources>
