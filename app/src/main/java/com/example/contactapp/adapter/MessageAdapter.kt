@@ -47,7 +47,7 @@ class MessageAdapter(private val items: MutableList<Message>) : RecyclerView.Ada
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val m = filteredItems[position]
-        val dateStr = formatTimestamp(m.timestamp)
+        val dateStr = formatTimestamp(holder.itemView.context, m.timestamp)
 
         if (holder is IncomingVH) {
             holder.tvBody.text = m.body
@@ -71,15 +71,18 @@ class MessageAdapter(private val items: MutableList<Message>) : RecyclerView.Ada
         }
     }
 
-    private fun formatTimestamp(timestamp: Long): String {
+    private fun formatTimestamp(context: android.content.Context, timestamp: Long): String {
         val now = Calendar.getInstance()
         val msgDate = Calendar.getInstance().apply { timeInMillis = timestamp }
-        
+        val date = Date(timestamp)
+
+        val timeFmt = android.text.format.DateFormat.getTimeFormat(context)
         return if (now.get(Calendar.YEAR) == msgDate.get(Calendar.YEAR) &&
             now.get(Calendar.DAY_OF_YEAR) == msgDate.get(Calendar.DAY_OF_YEAR)) {
-            SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(timestamp))
+            timeFmt.format(date)
         } else {
-            SimpleDateFormat("dd/MM HH:mm", Locale.getDefault()).format(Date(timestamp))
+            val dateFmt = android.text.format.DateFormat.getMediumDateFormat(context)
+            "${dateFmt.format(date)} ${timeFmt.format(date)}"
         }
     }
 
