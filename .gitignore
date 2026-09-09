@@ -26,8 +26,8 @@
 *.log
 *.keystore
 
-# Gradle wrapper
-/gradle/wrapper/gradle-wrapper.properties
+# Gradle wrapper (track the properties file in repo)
+#/gradle/wrapper/gradle-wrapper.properties
 
 # Ignore APKs
 /**/*.apk
