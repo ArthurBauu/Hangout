@@ -77,6 +77,7 @@ class ConversationActivity : AppCompatActivity()
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun sendSms(text: String)
     {
         if (PermissionHelper.missingPermissions(this).contains(Manifest.permission.SEND_SMS))

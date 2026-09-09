@@ -29,16 +29,16 @@ class SmsReceiver : BroadcastReceiver()
             val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent)
             for (msg in messages)
             {
-                val from = msg.originatingAddress ?: ""
-                val body = msg.messageBody ?: ""
+                val from = msg.originatingAddress
+                val body = msg.messageBody
     			Log.d("ContactApp", "SMS from=$from body=$body")
     			// Try to find contact by phone; if not found create minimal contact
-    			val dao = ContactDao(helper)
-    			var contact = dao.findByPhone(from ?: "")
+                val dao = ContactDao(helper)
+                var contact = dao.findByPhone(from ?: "")
     			var createdNew = false
     			if (contact == null)
     			{
-    				val newContact = Contact(name = from ?: "", phone = from ?: "", photoUri = "")
+                    val newContact = Contact(name = from ?: "", phone = from ?: "", photoUri = "")
     				val newId = dao.insertContact(newContact)
     				contact = dao.getContact(newId)
     				createdNew = true
