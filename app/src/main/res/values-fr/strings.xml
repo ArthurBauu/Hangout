@@ -3,6 +3,8 @@
     <string name="app_name">Contacts &amp; Messagerie</string>
     <string name="welcome">Bienvenue dans l\'application Contacts</string>
     <string name="create_contact">Créer un contact</string>
+    <string name="error_name_required">Le nom est requis</string>
+    <string name="error_phone_invalid">Entrez un numéro de téléphone valide (min 6 chiffres)</string>
     <string name="history_content_description">Historique des messages</string>
     <string name="delete_contact_title">Supprimer le contact</string>
     <string name="delete_contact_message">Voulez-vous vraiment supprimer ce contact ?</string>
