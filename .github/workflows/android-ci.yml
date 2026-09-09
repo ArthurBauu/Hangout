@@ -10,6 +10,8 @@ jobs:
   build:
     name: Build and Test
     runs-on: ubuntu-latest
+    container:
+      image: cirrusci/android-sdk:latest
 
     steps:
       - name: Checkout
@@ -34,53 +36,7 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
-      - name: Install Android SDK command-line tools and packages
-        env:
-          ANDROID_SDK_ROOT: ${{ runner.temp }}/android-sdk
-        run: |
-          set -euxo pipefail
-          LOG_FILE="$GITHUB_WORKSPACE/sdk-install.log"
-          sudo apt-get update
-          sudo apt-get install -y unzip curl libglu1-mesa libpulse0
-          mkdir -p "$ANDROID_SDK_ROOT"
-          CMDLINE_URL="https://dl.google.com/android/repository/commandlinetools-linux-latest.zip"
-          # Download with retries and verify file size, retry on unzip failure
-          attempts=0
-          while [ $attempts -lt 4 ]; do
-            attempts=$((attempts+1))
-            echo "Download attempt $attempts" | tee -a "$LOG_FILE"
-            curl -fSL --retry 3 --retry-delay 5 -o cmdline.zip "$CMDLINE_URL" 2>&1 | tee -a "$LOG_FILE" || true
-            if [ ! -s cmdline.zip ]; then
-              echo "cmdline.zip empty or missing, retrying" | tee -a "$LOG_FILE"
-              sleep 2
-              continue
-            fi
-            unzip -q -o cmdline.zip -d "$ANDROID_SDK_ROOT/cmdline-tools" 2>&1 | tee -a "$LOG_FILE" || {
-              echo "unzip failed, removing and retrying" | tee -a "$LOG_FILE"
-              rm -f cmdline.zip
-              sleep 2
-              continue
-            }
-            # success
-            break
-          done
-          if [ ! -d "$ANDROID_SDK_ROOT/cmdline-tools" ]; then
-            echo "Failed to download and extract cmdline tools" | tee -a "$LOG_FILE"
-            exit 1
-          fi
-          if [ -d "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" ]; then mv -f "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" "$ANDROID_SDK_ROOT/cmdline-tools/latest"; fi
-          export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
-          (yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-33" "build-tools;33.0.2") 2>&1 | tee -a "$LOG_FILE"
-          (yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" --licenses) 2>&1 | tee -a "$LOG_FILE" || true
-          echo "SDK contents:" 2>&1 | tee -a "$LOG_FILE" && ls -la "$ANDROID_SDK_ROOT" 2>&1 | tee -a "$LOG_FILE"
-          sdkmanager --list --sdk_root="$ANDROID_SDK_ROOT" 2>&1 | tee -a "$LOG_FILE" || true
 
-      - name: Upload SDK install log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: sdk-install-log
-          path: ${{ github.workspace }}/sdk-install.log
 
       - name: Build (assembleDebug)
         run: ./gradlew assembleDebug --no-daemon --stacktrace
