@@ -41,6 +41,7 @@ jobs:
           arch: x86_64
           target: default
           emulator-options: -no-window
+          script: echo "Emulator ready"
 
       - name: Build (assembleDebug)
         run: ./gradlew assembleDebug --no-daemon --stacktrace
